@@ -36,10 +36,13 @@ class SKReplyLibEventsHandler(SKReplyLibEvents):
         print('[SKReply] %s - connect %s ' % (bstrUserID, errcode))
     
     def OnDisconnect(self, bstrUserID, nErrorCode): 
-        errcode = SCode[nErrorCode][1]
-        if len(errcode) < 1:
-            errcode = SCode[nErrorCode][0]
-        print('[SKReply] %s - disconnect %s ' % (bstrUserID, errcode))
+        try:
+            errcode = SCode[nErrorCode][1]
+            if len(errcode) < 1:
+                errcode = SCode[nErrorCode][0]
+            print('[SKReply] %s - disconnect %s ' % (bstrUserID, errcode))
+        except:
+            print('[SKReply] %s - disconnect ErrorCode out of Range %d' % (bstrUserID, nErrorCode))
 
     def OnData(self, bstrUserID, bstrData): 
         print('[SKReply] %s - %s' % (bstrUserID, bstrData))
@@ -51,7 +54,10 @@ class SKReplyLibEventsHandler(SKReplyLibEvents):
         print('[SKReply] %s - solace reply connect %s ' % (bstrUserID, errcode))
 
     def OnSolaceReplyDisconnect(self, bstrUserID, nErrorCode): 
-        errcode = SCode[nErrorCode][1]
-        if len(errcode) < 1:
-            errcode = SCode[nErrorCode][0]
-        print('[SKReply] %s - solace reply disconnect %s ' % (bstrUserID, errcode))
+        try:
+            errcode = SCode[nErrorCode][1]
+            if len(errcode) < 1:
+                errcode = SCode[nErrorCode][0]
+            print('[SKReply] %s - solace reply disconnect %s ' % (bstrUserID, errcode))
+        except:
+            print('[SKReply] %s - solace reply disconnect ErrorCode out of Range %d' % (bstrUserID, nErrorCode))

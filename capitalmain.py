@@ -58,7 +58,8 @@ class CapitalMain(QtWidgets.QMainWindow, Ui_MainWindow):
                 return None
 
     def closeEvent(self, event):
-        self.capitalLogin(False)
+        if self.connectBtn.isChecked():
+            self.capitalLogin(False)
         self.capital.stop()
             
 #main

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from capitalevent import *
-from capitalstruct import *
 from capitalcode import CapitalCode as SCode #Status Code
 
 from comtypes.client import GetModule
