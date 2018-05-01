@@ -42,6 +42,9 @@ class Capital(QtWidgets.QMainWindow, Ui_MainWindow):
         self.actionIntraCMD.toggled.connect(self.on_intracmd_cb) 
         self.devDialog.hideTigger.connect(self.on_intracmd_cb)
 
+        #stocklist
+        self.stockList.currentChanged.connect(self.on_stocklist_changepage_cb)
+
         #COM Object
         self.setInitCOM()
         self._comRunning = False
@@ -85,6 +88,12 @@ class Capital(QtWidgets.QMainWindow, Ui_MainWindow):
             self.devDialog.hide()
             self.actionIntraCMD.setChecked(False)
 
+    def on_stocklist_changepage_cb(self, page):
+        print(page)
+        #model = QStandardItemModel()
+        model = QtGui.QStandardItemModel()
+        model.setHorizontalHeaderLabels(['Group', 'Stock'])
+        self.semTree.setModel(model)
 
 #############################################################
 #COM objects Control
@@ -104,6 +113,8 @@ class Capital(QtWidgets.QMainWindow, Ui_MainWindow):
         #signals
         self.skcenterevents.ontimer.connect(self.timerkeeping_cb)
         self.skquoteevents.onnotifyservertime.connect(self.timerkeeping_cb)
+        self.skquoteevents.onnotifystocklist.connect(self.stocklist_cb)
+        self.skquoteevents.onconnection.connect(self.onconnection_cb)
 
         self.centerConn = GetEvents(self.skcenter, self.skcenterevents)
         self.replyConn = GetEvents(self.skreply, self.skreplyevents)
@@ -186,9 +197,26 @@ class Capital(QtWidgets.QMainWindow, Ui_MainWindow):
             if res is not 0:
                 self.connectBtn.setChecked(False)
                 return None
+            
+            self.stockList.setEnabled(False)
 
     def timerkeeping_cb(self, strTime):
         self.statusbar.showMessage(strTime)
+
+    def onconnection_cb(self, nKind, nCode):
+        print("12345", nKind, nCode)
+        if nKind is 3003 and nCode is 0:
+            print('54321')
+            #res = self.skquote.SKQuoteLib_RequestStockList(0)
+            #if res is 0:
+            #    self.stockList.setEnabled(True)
+            #
+    def stocklist_cb(self, market, stockData):
+        if self.stocklist.currentIndex() is not market:
+            print('not the same, skip')
+            return None
+        
+
             
 #main
 if '__main__' in __name__:

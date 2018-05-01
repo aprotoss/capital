@@ -27,9 +27,14 @@ class SKOrderLibEventsHandler(SKOrderLibEvents):
     pass
 
 class SKQuoteLibEventsHandler(SKQuoteLibEvents, QtCore.QObject):
+    #signal
+    onconnection = QtCore.pyqtSignal(int, int)
     onnotifyservertime = QtCore.pyqtSignal(str)
+    onnotifystocklist = QtCore.pyqtSignal(int, str)
+
     def OnConnection(self, nKind, nCode):
         print('[SKQuote] OnConnection: %s - %s' % (SCode[nKind][1], SCode[nCode][1]))
+        #self.onconnection.emit(nKind, nCode)
 
     def OnNotifyServerTime(self, sHour, sMinute, sSecond, nTotal): 
         onnotifyservertime = QtCore.pyqtSignal(str)

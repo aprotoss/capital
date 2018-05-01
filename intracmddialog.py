@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 from PyQt5 import QtCore, QtGui, QtWidgets
-from intracmddialogui import Ui_Dialog
+from intracmddialogui import Ui_intraCMD
 
 try:
     from PyQt5.QtCore import QString
 except:
     QString = str
 
-class intraCMD(QtWidgets.QDialog, Ui_Dialog):
+class intraCMD(QtWidgets.QDialog, Ui_intraCMD):
     cmdTigger = QtCore.pyqtSignal(str)
     hideTigger = QtCore.pyqtSignal(bool)
     def __init__(self, parent=None):

@@ -8,11 +8,11 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-class Ui_Dialog(object):
-    def setupUi(self, Dialog):
-        Dialog.setObjectName("Dialog")
-        Dialog.resize(480, 240)
-        self.groupBox = QtWidgets.QGroupBox(Dialog)
+class Ui_intraCMD(object):
+    def setupUi(self, intraCMD):
+        intraCMD.setObjectName("intraCMD")
+        intraCMD.resize(480, 240)
+        self.groupBox = QtWidgets.QGroupBox(intraCMD)
         self.groupBox.setGeometry(QtCore.QRect(2, 0, 475, 97))
         self.groupBox.setObjectName("groupBox")
         self.cmdLine = QtWidgets.QTextEdit(self.groupBox)
@@ -29,7 +29,7 @@ class Ui_Dialog(object):
         self.enterBtn.setIcon(icon)
         self.enterBtn.setIconSize(QtCore.QSize(80, 80))
         self.enterBtn.setObjectName("enterBtn")
-        self.groupBox_2 = QtWidgets.QGroupBox(Dialog)
+        self.groupBox_2 = QtWidgets.QGroupBox(intraCMD)
         self.groupBox_2.setGeometry(QtCore.QRect(4, 96, 470, 140))
         self.groupBox_2.setObjectName("groupBox_2")
         self.histroyBrowser = QtWidgets.QTextBrowser(self.groupBox_2)
@@ -39,13 +39,13 @@ class Ui_Dialog(object):
         self.histroyBrowser.setFont(font)
         self.histroyBrowser.setObjectName("histroyBrowser")
 
-        self.retranslateUi(Dialog)
-        QtCore.QMetaObject.connectSlotsByName(Dialog)
+        self.retranslateUi(intraCMD)
+        QtCore.QMetaObject.connectSlotsByName(intraCMD)
 
-    def retranslateUi(self, Dialog):
+    def retranslateUi(self, intraCMD):
         _translate = QtCore.QCoreApplication.translate
-        Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
-        self.groupBox.setTitle(_translate("Dialog", "Command"))
-        self.groupBox_2.setTitle(_translate("Dialog", "History"))
+        intraCMD.setWindowTitle(_translate("intraCMD", "Dialog"))
+        self.groupBox.setTitle(_translate("intraCMD", "Command"))
+        self.groupBox_2.setTitle(_translate("intraCMD", "History"))
 
 import capital_rc
