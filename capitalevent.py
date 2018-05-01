@@ -3,10 +3,18 @@ from sklib import *
 from capitalcode import CapitalCode as SCode #Status Code
 from capitalcode import CapitalMarket
 
-class SKCenterLibEventsHandler(SKCenterLibEvents):
+from PyQt5 import QtCore
+
+try:
+    from PyQt5.QtCore import QString
+except:
+    QString = str
+
+class SKCenterLibEventsHandler(SKCenterLibEvents, QtCore.QObject):
+    ontimer = QtCore.pyqtSignal(str)
     def OnTimer(self, nTime): 
         stime = str(nTime)
-        print('[SKCenter] %s:%s:%s' % (stime[0:2], stime[2:4], stime[4:6]))
+        self.ontimer.emit('[SKCenter] %s:%s:%s' % (stime[0:2], stime[2:4], stime[4:6]))
 
 class SKOOQuoteLibEventsHandler(SKOOQuoteLibEvents):
     pass
@@ -18,12 +26,15 @@ class SKOSQuoteLibEventsHandler(SKOSQuoteLibEvents):
 class SKOrderLibEventsHandler(SKOrderLibEvents):
     pass
 
-class SKQuoteLibEventsHandler(SKQuoteLibEvents):
+class SKQuoteLibEventsHandler(SKQuoteLibEvents, QtCore.QObject):
+    onnotifyservertime = QtCore.pyqtSignal(str)
     def OnConnection(self, nKind, nCode):
         print('[SKQuote] OnConnection: %s - %s' % (SCode[nKind][1], SCode[nCode][1]))
 
     def OnNotifyServerTime(self, sHour, sMinute, sSecond, nTotal): 
-        print('[SKQuote]: time: %2d:%2d:%2d %d' % (sHour, sMinute, sSecond, nTotal))
+        onnotifyservertime = QtCore.pyqtSignal(str)
+        #print('[SKQuote] time: %2d:%2d:%2d %d' % (sHour, sMinute, sSecond, nTotal))
+        self.onnotifyservertime.emit('[SKQuote] time: %2d:%2d:%2d %d' % (sHour, sMinute, sSecond, nTotal))
     
     def OnNotifyStockList(self, sMarketNo, bstrStockData):
         print('[SKQuote]: %s - %s' % (CapitalMarket[sMarketNo], bstrStockData))
