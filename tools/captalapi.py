@@ -1,6 +1,7 @@
+'''
+Capital Python API Generater
+'''
 import sys
-
-filename = 'captalevent.py'
 
 def find_CoClass(content):
     res = {}
@@ -64,15 +65,22 @@ if __name__ == '__main__':
 
     with open('sklib.py', 'w') as sklib:
         sklib.write('# -*- coding: utf-8 -*-\n')
-        sklib.write('\'\'\'\n %s \n\'\'\'\n' % 'Captal Python API Generater')
+        sklib.write('\'\'\'\n')
+        sklib.write('%s \n' % 'Produce By Captal Python API Generater')
+        sklib.write('%s \n' % '** Do not change this file **')
+        sklib.write('\'\'\'\n')
 
 
-        sklib.write('\'\'\'\n%s \n\'\'\'\n' % 'CLSID')
+        sklib.write('\'\'\'\n')
+        sklib.write('%s\n' % 'CLSID - CoClass')
+        sklib.write('\'\'\'\n')
         for cid in clsid:
             sklib.write('CLSID_%s = \'%s\'\n' % (cid, clsid[cid]))
 
         sklib.write('\n\n')
-        sklib.write('\'\'\'\n%s \n\'\'\'\n' % 'Event')
+        sklib.write('\'\'\'\n')
+        sklib.write('%s\n' % 'CoClasse Event')
+        sklib.write('\'\'\'\n')
 
         for e in event:
             funcs = event[e].replace('=defaultNamedNotOptArg', '').replace('#', '').replace('\t', '    ').replace('', '').split(':')
@@ -82,7 +90,7 @@ if __name__ == '__main__':
                 if len(func) < 3:
                     continue
                 tk = func.split()
-                sklib.write(func+': \n        print(\'Event: %s\')\n' % tk[1].split('(')[0])
+                sklib.write(func+': \n        print(\'%s: %s\')\n' % (e, tk[1].split('(')[0]))
 
             sklib.write('\n\n')
 

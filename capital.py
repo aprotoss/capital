@@ -1,29 +1,50 @@
 # -*- coding: utf-8 -*-
 from capitalevent import *
-from capitalcode import CapitalCode as SCode #STatus Code
-from sklib import *
+from capitalstruct import *
+from capitalcode import CapitalCode as SCode #Status Code
+
+from comtypes.client import GetModule
+from comtypes.client import CreateObject
+from comtypes.client import GetEvents
+
 from threading import Thread
+from ctypes import *
 import sys
-sys.coinit_flags = 0
-import win32com
-import win32event
-import win32com.client
-import pythoncom
 import time
+
+sys.coinit_flags = 0
+import pythoncom
+from pythoncom import CoInitialize 
+from pythoncom import CoInitializeEx
+from pythoncom import CoUninitialize
 
 class Capital(Thread):
     def __init__(self):
         super(Capital, self).__init__()
-        #Create COM Objects
-        self.skcenter = win32com.client.DispatchWithEvents(CLSID_SKCenterLib, SKCenterLibEventsHandler)
-        self.skreply  = win32com.client.DispatchWithEvents(CLSID_SKReplyLib, SKReplyLibEventsHandler)
-        self.skquote = win32com.client.DispatchWithEvents(CLSID_SKQuoteLib, SKQuoteLibEventsHandler)
-            
         self._running = False
+
+    def setInitial(self):
+        #Create COM Objects
+        module = GetModule('./CapitalApi_2.13.11/API/x86/SKCOM.dll')
+        self.skcenter = CreateObject(module.SKCenterLib, interface=module.ISKCenterLib)
+        self.skreply = CreateObject(module.SKReplyLib, interface=module.ISKReplyLib)
+        self.skquote = CreateObject(module.SKQuoteLib, interface=module.ISKQuoteLib)
+        self.module = module
+        
+        self.skcenterevents = SKCenterLibEventsHandler()
+        self.skreplyevents = SKReplyLibEventsHandler()
+        self.skquoteevents = SKQuoteLibEventsHandler()
+
+        self.centerConn = GetEvents(self.skcenter, self.skcenterevents)
+        self.replyConn = GetEvents(self.skreply, self.skreplyevents)
+        self.quoteConn = GetEvents(self.skquote, self.skquoteevents)
 
     def run(self):
         print('[Capital] thread start...')
+        CoInitialize()
+        self.setInitial()
         self._running = True
+    
         while self._running:
             time.sleep(0.1)
             pythoncom.PumpWaitingMessages()
@@ -31,10 +52,12 @@ class Capital(Thread):
 
     def stop(self):
         self._running = False
+        CoUninitialize()
 
     def setCMD(self, *args):
         res = None
         cls = None
+        struct = None
         argv = []
 
         if args[0][:6] == 'SKCent':
@@ -45,6 +68,15 @@ class Capital(Thread):
 
         if args[0][:6] == 'SKQuot':
             cls = self.skquote
+        
+        if args[0][:6] == 'SKOOQu':
+            cls = self.skooquote
+        
+        if args[0][:6] == 'SKOSQu':
+            cls = self.skosquote
+        
+        if args[0][:6] == 'SKOrde':
+            cls = self.skorder
 
         if cls is None:
             print('Command: %s Error' % args[0])
@@ -56,13 +88,21 @@ class Capital(Thread):
                 argv.append(arg[1:-1])
                 continue
 
+            #True
             if arg == 'True':
                 argv.append(True)
                 continue
             
+            #False
             if arg == 'False':
                 argv.append(False)
                 continue
+
+            #*strcut
+            if arg[0] == '*':
+              struct = SKSTOCK()  
+              argv.append(pointer(struct))
+              continue
 
             try:
                 print('atoi ', arg)
@@ -83,10 +123,19 @@ class Capital(Thread):
             msg = SCode[res][0]
         print(msg)
 
+        if struct is not None:
+            print(struct)
 
-
-        
-
-
-
-
+    def test(self):
+        st = self.module.SKSTOCK()
+        o, res = self.skquote.SKQuoteLib_GetStockByNo('2303', st)
+        print(st)
+        print(res)
+        print(o)
+        #print(st.sStockidx)
+        print(st.bstrStockName)
+        print(st.nHigh)
+        print(st.nOpen)
+        print(st.nLow)
+        print(st.nClose)
+            

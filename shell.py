@@ -53,6 +53,10 @@ class ShellPrompt(Cmd):
             del self.capital
             self.capital = None
 
+    def do_test(self, args):
+        if self.capital:
+            self.capital.test()
+
 if __name__ == '__main__':
     print('--- Start ---')
     shell = ShellPrompt()
