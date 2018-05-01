@@ -28,7 +28,7 @@ class Ui_MainWindow(object):
         self.connectBtn.setCheckable(True)
         self.connectBtn.setObjectName("connectBtn")
         self.msgBrowser = QtWidgets.QTextBrowser(self.centralwidget)
-        self.msgBrowser.setGeometry(QtCore.QRect(562, 464, 461, 259))
+        self.msgBrowser.setGeometry(QtCore.QRect(560, 466, 461, 259))
         self.msgBrowser.setObjectName("msgBrowser")
         self.groupBox = QtWidgets.QGroupBox(self.centralwidget)
         self.groupBox.setGeometry(QtCore.QRect(100, 2, 160, 50))
@@ -106,12 +106,16 @@ class Ui_MainWindow(object):
         self.actionIntraCMD.setChecked(True)
         self.actionIntraCMD.setEnabled(True)
         self.actionIntraCMD.setObjectName("actionIntraCMD")
+        self.action_Quit = QtWidgets.QAction(MainWindow)
+        self.action_Quit.setObjectName("action_Quit")
+        self.menuFile.addAction(self.action_Quit)
         self.menuAbou.addAction(self.actionIntraCMD)
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuAbou.menuAction())
 
         self.retranslateUi(MainWindow)
         self.stockList.setCurrentIndex(0)
+        self.action_Quit.destroyed.connect(MainWindow.close)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -127,5 +131,6 @@ class Ui_MainWindow(object):
         self.menuFile.setTitle(_translate("MainWindow", "File"))
         self.menuAbou.setTitle(_translate("MainWindow", "Develop"))
         self.actionIntraCMD.setText(_translate("MainWindow", "IntraCMD"))
+        self.action_Quit.setText(_translate("MainWindow", "_Quit"))
 
 import capital_rc

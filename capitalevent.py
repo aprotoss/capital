@@ -34,11 +34,11 @@ class SKQuoteLibEventsHandler(SKQuoteLibEvents, QtCore.QObject):
 
     def OnConnection(self, nKind, nCode):
         print('[SKQuote] OnConnection: %s - %s' % (SCode[nKind][1], SCode[nCode][1]))
-        #self.onconnection.emit(nKind, nCode)
+        self.onconnection.emit(nKind, nCode)
 
     def OnNotifyServerTime(self, sHour, sMinute, sSecond, nTotal): 
         onnotifyservertime = QtCore.pyqtSignal(str)
-        #print('[SKQuote] time: %2d:%2d:%2d %d' % (sHour, sMinute, sSecond, nTotal))
+        print('[SKQuote] time: %2d:%2d:%2d %d' % (sHour, sMinute, sSecond, nTotal))
         self.onnotifyservertime.emit('[SKQuote] time: %2d:%2d:%2d %d' % (sHour, sMinute, sSecond, nTotal))
     
     def OnNotifyStockList(self, sMarketNo, bstrStockData):

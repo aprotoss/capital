@@ -12,6 +12,7 @@ from capitalui import Ui_MainWindow
 #system
 from threading import Thread
 from ctypes import *
+import threading
 import sys
 import time
 
@@ -29,6 +30,9 @@ try:
     from PyQt5.QtCore import QString
 except:
     QString = str
+
+
+lock = threading.Lock()
 
 class Capital(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
@@ -133,6 +137,8 @@ class Capital(QtWidgets.QMainWindow, Ui_MainWindow):
     
     #setCMD: for COM Object command 
     def setCMD(self, *args):
+        global lock
+        lock.acquire()
         res = None
         cls = None
         
@@ -160,6 +166,7 @@ class Capital(QtWidgets.QMainWindow, Ui_MainWindow):
         #self.statusbar.showMessage('[CMD] %s: %s' % (args[0], SCode[res][0]))
         self.msgBrowser.append('[CMD] %s: %s' % (args[0], SCode[res][0]))
 
+        lock.release()
         return res
     #
     #COM Object commands
@@ -204,19 +211,17 @@ class Capital(QtWidgets.QMainWindow, Ui_MainWindow):
         self.statusbar.showMessage(strTime)
 
     def onconnection_cb(self, nKind, nCode):
-        print("12345", nKind, nCode)
-        if nKind is 3003 and nCode is 0:
-            print('54321')
-            #res = self.skquote.SKQuoteLib_RequestStockList(0)
-            #if res is 0:
-            #    self.stockList.setEnabled(True)
-            #
+        time.sleep(1.5)
+        if nKind == 3003 and nCode == 0:
+            res = self.skquote.SKQuoteLib_RequestStockList(0)
+            if res is 0:
+                self.stockList.setEnabled(True)
+            
     def stocklist_cb(self, market, stockData):
+        print('market: %d, current %d' % (market, self.stocklist.currentIndex()))
         if self.stocklist.currentIndex() is not market:
             print('not the same, skip')
             return None
-        
-
             
 #main
 if '__main__' in __name__:
