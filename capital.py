@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 #Capital
+from intracmddialog import intraCMD
 from capitalevent import *
 from capitalcode import CapitalMarket
 from capitalcode import CapitalCode as SCode #Status Code
@@ -34,8 +35,12 @@ class Capital(QtWidgets.QMainWindow, Ui_MainWindow):
         super(Capital, self).__init__(parent)
         self.setupUi(self)
 
-        #self.capital = Capital()
-        #self.capital.start()
+        #Develop Dialog
+        self.devDialog = intraCMD(self)
+        self.devDialog.cmdTigger.connect(self.setDevCMD)
+        self.devDialog.show()
+        self.actionIntraCMD.toggled.connect(self.on_intracmd_cb) 
+        self.devDialog.hideTigger.connect(self.on_intracmd_cb)
 
         #COM Object
         self.setInitCOM()
@@ -48,6 +53,39 @@ class Capital(QtWidgets.QMainWindow, Ui_MainWindow):
         if self.connectBtn.isChecked():
             self.capitalLogin(False)
         self._comRunning = False
+        self.devDialog.close()
+
+    def setDevCMD(self, cmd):
+        argv = []
+        args = cmd.split()
+        
+        argv.append(args[0])
+        
+        for arg in args[1:]:
+            print(arg)
+            if arg[0] == '\'' and arg[-1] == '\'':
+                argv.append(arg[1:-1])
+                continue
+            if arg == 'True':
+                argv.append(True)
+                continue
+            if arg == 'False':
+                argv.append(False)
+                continue
+
+            argv.append(int(arg))
+
+        self.setCMD(*argv)
+
+    def on_intracmd_cb(self, toggled):
+        if toggled:
+            self.devDialog.show()
+            self.actionIntraCMD.setChecked(True)
+        else:
+            self.devDialog.hide()
+            self.actionIntraCMD.setChecked(False)
+
+
 #############################################################
 #COM objects Control
 #############################################################
@@ -107,6 +145,9 @@ class Capital(QtWidgets.QMainWindow, Ui_MainWindow):
 
         argv = args[1:]
         res = getattr(cls, args[0])(*argv)
+
+        #self.statusbar.showMessage('[CMD] %s: %s' % (args[0], SCode[res][0]))
+        self.msgBrowser.append('[CMD] %s: %s' % (args[0], SCode[res][0]))
 
         return res
     #
