@@ -31,6 +31,7 @@ class SKQuoteLibEventsHandler(SKQuoteLibEvents, QtCore.QObject):
     onconnection = QtCore.pyqtSignal(int, int)
     onnotifyservertime = QtCore.pyqtSignal(str)
     onnotifystocklist = QtCore.pyqtSignal(int, str)
+    onnotifyquote = QtCore.pyqtSignal(int, int)
 
     def OnConnection(self, nKind, nCode):
         print('[SKQuote] OnConnection: %s - %s' % (SCode[nKind][1], SCode[nCode][1]))
@@ -44,6 +45,10 @@ class SKQuoteLibEventsHandler(SKQuoteLibEvents, QtCore.QObject):
     def OnNotifyStockList(self, sMarketNo, bstrStockData):
         #print('[SKQuote]: %s - %s' % (CapitalMarket[sMarketNo], bstrStockData))
         self.onnotifystocklist.emit(sMarketNo, bstrStockData)
+    
+    def OnNotifyQuote(self, sMarketNo, sStockIdx): 
+        #print('[SKQuote] OnNotifyQuote')
+        self.onnotifyquote.emit(sMarketNo, sStockIdx)
 
 class SKReplyLibEventsHandler(SKReplyLibEvents):
     def OnConnect(self, bstrUserID, nErrorCode):

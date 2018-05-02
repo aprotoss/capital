@@ -50,6 +50,14 @@ class Capital(QtWidgets.QMainWindow, Ui_MainWindow):
 
         #stocklist
         self.stockList.currentChanged.connect(self.on_stocklist_changepage_cb)
+        self.semTree.itemDoubleClicked.connect(self.on_tree_itemclicked_cb)
+        self.otcTree.itemDoubleClicked.connect(self.on_tree_itemclicked_cb)
+        self.futuresTree.itemDoubleClicked.connect(self.on_tree_itemclicked_cb)
+        self.optionTree.itemDoubleClicked.connect(self.on_tree_itemclicked_cb)
+        self.esmTree.itemDoubleClicked.connect(self.on_tree_itemclicked_cb)
+
+        #stocktab
+        self.skstockTab.tabCloseRequested.connect(self.on_tabclosereq_cb)
 
         #COM Object
         self.setInitCOM()
@@ -95,7 +103,7 @@ class Capital(QtWidgets.QMainWindow, Ui_MainWindow):
             self.actionIntraCMD.setChecked(False)
 
     def on_stocklist_changepage_cb(self, page):
-        print('page: %d ' % page)
+        #print('page: %d ' % page)
         res = self.skquote.SKQuoteLib_RequestStockList(page)
         self.stocklist_num = 0
 
@@ -119,6 +127,7 @@ class Capital(QtWidgets.QMainWindow, Ui_MainWindow):
         self.skquoteevents.onnotifyservertime.connect(self.timerkeeping_cb)
         self.skquoteevents.onnotifystocklist.connect(self.stocklist_cb)
         self.skquoteevents.onconnection.connect(self.onconnection_cb)
+        self.skquoteevents.onnotifyquote.connect(self.onnotifyquote_cb)
 
         self.centerConn = GetEvents(self.skcenter, self.skcenterevents)
         self.replyConn = GetEvents(self.skreply, self.skreplyevents)
@@ -180,12 +189,14 @@ class Capital(QtWidgets.QMainWindow, Ui_MainWindow):
             if res is not 0 and res is not 2003:
                 self.connectBtn.setChecked(False)
                 return None
+            time.sleep(2)
 
             res = self.setCMD('SKReplyLib_ConnectByID', userID)
             self.msgBrowser.append('SKReplyLib_ConnectByID: ' + SCode[res][1])
             if res is not 0:
                 self.connectBtn.setChecked(False)
                 return None
+            time.sleep(2)
             
             res = self.setCMD('SKQuoteLib_EnterMonitor')
             self.msgBrowser.append('SKQuoteLib_EnterMonitor: ' + SCode[res][1])
@@ -211,7 +222,7 @@ class Capital(QtWidgets.QMainWindow, Ui_MainWindow):
         self.statusbar.showMessage(strTime)
 
     def onconnection_cb(self, nKind, nCode):
-        time.sleep(1.5)
+        #time.sleep(1.5)
         if nKind == 3003 and nCode == 0:
             self.stockList.setEnabled(True)
             self.on_stocklist_changepage_cb(0)
@@ -222,6 +233,7 @@ class Capital(QtWidgets.QMainWindow, Ui_MainWindow):
             return None
 
         tree = self.stockList.currentWidget().children()[0]
+
         if self.stocklist_num is 0:
             tree.clear()
             tree.setHeaderLabels(['Stock No.', 'Stock Name'])
@@ -243,6 +255,73 @@ class Capital(QtWidgets.QMainWindow, Ui_MainWindow):
             head.setText(0, sp[0])
             head.setText(1, sp[1])
         tree.addTopLevelItem(root)
+            
+    def on_tree_itemclicked_cb(self, item, column):
+        if item.data(1, 0) is None:
+            #Group Item, skip it.
+            return None
+
+        psPageNo, res = self.skquote.SKQuoteLib_RequestStocks(-1, item.data(0, 0))
+        self.msgBrowser.append(('SKQuoteLib_GetStockByNo: ' + SCode[res][1] + ' PageNo: %d') % psPageNo) 
+    
+    def on_tabclosereq_cb(self, idx):
+        print(idx)
+        w = self.skstockTab.currentWidget()
+        del w
+        self.skstockTab.removeTab(idx)
+        
+    def onnotifyquote_cb(self, sMarketNo, sStockIdx):
+        pSKStock = self.module.SKSTOCK()
+        pSKStock, res = self.skquote.SKQuoteLib_GetStockByIndex(sMarketNo, sStockIdx, pSKStock)
+        self.msgBrowser.append('SKQuoteLib_GetStockByNo: ' + SCode[res][1])
+        if res is not 0:
+            return None
+
+        self.skstock_add_to_tab(pSKStock)
+        
+    def skstock_add_to_tab(self, pSKStock):
+        widget = QtWidgets.QTextBrowser(self.skstockTab)
+        self.skstockTab.addTab(widget, pSKStock.bstrStockNo)
+        widget.show()
+        widget.setReadOnly(True)
+
+        #widget.append('Index: %d' % pSKStock.sStockidx)
+        widget.append('Decimal: %d' % pSKStock.sDecimal)
+        widget.append('Type: %d' % pSKStock.sTypeNo)
+        widget.append('Market: ' + pSKStock.bstrMarketNo)
+        widget.append('Stock: ' + pSKStock.bstrStockNo)		
+        widget.append('Company: ' + pSKStock.bstrStockName)	
+        widget.append('---------------------------------------')
+        widget.append('High: %d' % pSKStock.nHigh)
+        widget.append('Open: %d' % pSKStock.nOpen)
+        widget.append('Low : %d' % pSKStock.nLow)
+        widget.append('Clos: %d' % pSKStock.nClose)
+
+        widget.append('TickQty: %d' % pSKStock.nTickQty)
+
+        widget.append('Ref Cost: %d' % pSKStock.nRef)
+
+        widget.append('Bid: %d' % pSKStock.nBid)
+        widget.append('Bc : %d' % pSKStock.nBc)
+        widget.append('Ask: %d' % pSKStock.nAsk)
+        widget.append('Ac : %d' % pSKStock.nAc)
+
+        widget.append('TBc: %d' % pSKStock.nTBc)
+        widget.append('TAc: %d' % pSKStock.nTAc)
+
+        widget.append('FutureOI: %d' % pSKStock.nFutureOI)
+
+        widget.append('Total Qty: %d' % pSKStock.nTQty)
+        widget.append('Yesterday Qty: %d' % pSKStock.nYQty)
+
+        widget.append('Up: %d' % pSKStock.nUp)
+        widget.append('Down: %d' % pSKStock.nDown)
+        if pSKStock.nSimulate is 0:
+            widget.append('Simulate: Normal')
+        elif pSKStock.nSimulate is 1:
+            widget.append('Simulate: trial calculation')
+
+
 
             
 #main
