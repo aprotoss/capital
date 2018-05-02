@@ -3,6 +3,7 @@
 from intracmddialog import intraCMD
 from capitalevent import *
 from capitalcode import CapitalMarket
+from capitalcode import CapitalStockGroup
 from capitalcode import CapitalCode as SCode #Status Code
 
 #Qt
@@ -32,9 +33,10 @@ except:
     QString = str
 
 
-lock = threading.Lock()
+#lock = threading.Lock()
 
 class Capital(QtWidgets.QMainWindow, Ui_MainWindow):
+    stocklist_num = 0
     def __init__(self, parent=None):
         super(Capital, self).__init__(parent)
         self.setupUi(self)
@@ -42,7 +44,7 @@ class Capital(QtWidgets.QMainWindow, Ui_MainWindow):
         #Develop Dialog
         self.devDialog = intraCMD(self)
         self.devDialog.cmdTigger.connect(self.setDevCMD)
-        self.devDialog.show()
+        self.devDialog.hide()
         self.actionIntraCMD.toggled.connect(self.on_intracmd_cb) 
         self.devDialog.hideTigger.connect(self.on_intracmd_cb)
 
@@ -93,11 +95,9 @@ class Capital(QtWidgets.QMainWindow, Ui_MainWindow):
             self.actionIntraCMD.setChecked(False)
 
     def on_stocklist_changepage_cb(self, page):
-        print(page)
-        #model = QStandardItemModel()
-        model = QtGui.QStandardItemModel()
-        model.setHorizontalHeaderLabels(['Group', 'Stock'])
-        self.semTree.setModel(model)
+        print('page: %d ' % page)
+        res = self.skquote.SKQuoteLib_RequestStockList(page)
+        self.stocklist_num = 0
 
 #############################################################
 #COM objects Control
@@ -137,8 +137,8 @@ class Capital(QtWidgets.QMainWindow, Ui_MainWindow):
     
     #setCMD: for COM Object command 
     def setCMD(self, *args):
-        global lock
-        lock.acquire()
+        #global lock
+        #lock.acquire()
         res = None
         cls = None
         
@@ -150,7 +150,7 @@ class Capital(QtWidgets.QMainWindow, Ui_MainWindow):
 
         if args[0][:6] == 'SKQuot':
             cls = self.skquote
-        
+       
         if args[0][:6] == 'SKOOQu':
             cls = self.skooquote
         
@@ -166,7 +166,7 @@ class Capital(QtWidgets.QMainWindow, Ui_MainWindow):
         #self.statusbar.showMessage('[CMD] %s: %s' % (args[0], SCode[res][0]))
         self.msgBrowser.append('[CMD] %s: %s' % (args[0], SCode[res][0]))
 
-        lock.release()
+        #lock.release()
         return res
     #
     #COM Object commands
@@ -177,7 +177,7 @@ class Capital(QtWidgets.QMainWindow, Ui_MainWindow):
         if checked:
             res = self.setCMD('SKCenterLib_Login', userID, pwd)
             self.msgBrowser.append('SKCenterLib_Login: ' + SCode[res][1])
-            if res is not 0:
+            if res is not 0 and res is not 2003:
                 self.connectBtn.setChecked(False)
                 return None
 
@@ -213,15 +213,37 @@ class Capital(QtWidgets.QMainWindow, Ui_MainWindow):
     def onconnection_cb(self, nKind, nCode):
         time.sleep(1.5)
         if nKind == 3003 and nCode == 0:
-            res = self.skquote.SKQuoteLib_RequestStockList(0)
-            if res is 0:
-                self.stockList.setEnabled(True)
+            self.stockList.setEnabled(True)
+            self.on_stocklist_changepage_cb(0)
             
     def stocklist_cb(self, market, stockData):
-        print('market: %d, current %d' % (market, self.stocklist.currentIndex()))
-        if self.stocklist.currentIndex() is not market:
-            print('not the same, skip')
+        if self.stockList.currentIndex() is not market:
+            print('[Capital] StockList Index and Market is not match')
             return None
+
+        tree = self.stockList.currentWidget().children()[0]
+        if self.stocklist_num is 0:
+            tree.clear()
+            tree.setHeaderLabels(['Stock No.', 'Stock Name'])
+            header = tree.header()
+            header.setDefaultSectionSize(100)
+        self.stocklist_num += 1
+        root = QtWidgets.QTreeWidgetItem(tree)
+        if market is 0:
+            root.setText(0, '%s' % CapitalStockGroup[self.stocklist_num])
+        else:
+            root.setText(0, 'Group %d' % self.stocklist_num)
+        
+        stock = stockData.split(';')
+        for s in stock:
+            if len(s) is 0:
+                continue
+            sp = s.split(',')
+            head = QtWidgets.QTreeWidgetItem(root)
+            head.setText(0, sp[0])
+            head.setText(1, sp[1])
+        tree.addTopLevelItem(root)
+
             
 #main
 if '__main__' in __name__:

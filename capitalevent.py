@@ -42,7 +42,8 @@ class SKQuoteLibEventsHandler(SKQuoteLibEvents, QtCore.QObject):
         self.onnotifyservertime.emit('[SKQuote] time: %2d:%2d:%2d %d' % (sHour, sMinute, sSecond, nTotal))
     
     def OnNotifyStockList(self, sMarketNo, bstrStockData):
-        print('[SKQuote]: %s - %s' % (CapitalMarket[sMarketNo], bstrStockData))
+        #print('[SKQuote]: %s - %s' % (CapitalMarket[sMarketNo], bstrStockData))
+        self.onnotifystocklist.emit(sMarketNo, bstrStockData)
 
 class SKReplyLibEventsHandler(SKReplyLibEvents):
     def OnConnect(self, bstrUserID, nErrorCode):
