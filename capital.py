@@ -240,13 +240,13 @@ class Capital(QtWidgets.QMainWindow, Ui_MainWindow):
             header = tree.header()
             header.setDefaultSectionSize(100)
         self.stocklist_num += 1
+        stock = stockData.split(';')
         root = QtWidgets.QTreeWidgetItem(tree)
         if market is 0:
-            root.setText(0, '%s' % CapitalStockGroup[self.stocklist_num])
+            root.setText(0, '%s (%d)' % (CapitalStockGroup[self.stocklist_num], len(stock)))
         else:
-            root.setText(0, 'Group %d' % self.stocklist_num)
-        
-        stock = stockData.split(';')
+            root.setText(0, 'Group %d (%d)' % self.stocklist_num)
+
         for s in stock:
             if len(s) is 0:
                 continue
@@ -320,9 +320,6 @@ class Capital(QtWidgets.QMainWindow, Ui_MainWindow):
             widget.append('Simulate: Normal')
         elif pSKStock.nSimulate is 1:
             widget.append('Simulate: trial calculation')
-
-
-
             
 #main
 if '__main__' in __name__:
