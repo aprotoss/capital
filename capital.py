@@ -32,11 +32,11 @@ try:
 except:
     QString = str
 
-
 #lock = threading.Lock()
 
 class Capital(QtWidgets.QMainWindow, Ui_MainWindow):
     stocklist_num = 0
+    quoteStockTab = {}
     def __init__(self, parent=None):
         super(Capital, self).__init__(parent)
         self.setupUi(self)
@@ -261,13 +261,21 @@ class Capital(QtWidgets.QMainWindow, Ui_MainWindow):
             #Group Item, skip it.
             return None
 
+        psPageNo = -1
         psPageNo, res = self.skquote.SKQuoteLib_RequestStocks(-1, item.data(0, 0))
         self.msgBrowser.append(('SKQuoteLib_GetStockByNo: ' + SCode[res][1] + ' PageNo: %d') % psPageNo) 
+        if res is not 0:
+            return None
+        self.quoteStockTab[item.data(0, 0)] = [psPageNo, None]
     
     def on_tabclosereq_cb(self, idx):
-        print(idx)
-        w = self.skstockTab.currentWidget()
-        del w
+        stockNo = self.skstockTab.tabText(idx)
+        tmp = self.quoteStockTab[stockNo]
+        
+        #reset quote by pageno
+        self.skquote.SKQuoteLib_RequestStocks(tmp[0], None)
+        del tmp[1]
+        self.quoteStockTab[stockNo] = []
         self.skstockTab.removeTab(idx)
         
     def onnotifyquote_cb(self, sMarketNo, sStockIdx):
@@ -280,46 +288,51 @@ class Capital(QtWidgets.QMainWindow, Ui_MainWindow):
         self.skstock_add_to_tab(pSKStock)
         
     def skstock_add_to_tab(self, pSKStock):
-        widget = QtWidgets.QTextBrowser(self.skstockTab)
-        self.skstockTab.addTab(widget, pSKStock.bstrStockNo)
-        widget.show()
-        widget.setReadOnly(True)
+        tbrowser = self.quoteStockTab[pSKStock.bstrStockNo][1]
+        if tbrowser is None:
+            tbrowser = QtWidgets.QTextBrowser(self.skstockTab)
+            self.skstockTab.addTab(tbrowser, pSKStock.bstrStockNo)
+            tbrowser.show()
+            tbrowser.setReadOnly(True)
+            self.quoteStockTab[pSKStock.bstrStockNo][1] = tbrowser
 
-        #widget.append('Index: %d' % pSKStock.sStockidx)
-        widget.append('Decimal: %d' % pSKStock.sDecimal)
-        widget.append('Type: %d' % pSKStock.sTypeNo)
-        widget.append('Market: ' + pSKStock.bstrMarketNo)
-        widget.append('Stock: ' + pSKStock.bstrStockNo)		
-        widget.append('Company: ' + pSKStock.bstrStockName)	
-        widget.append('---------------------------------------')
-        widget.append('High: %d' % pSKStock.nHigh)
-        widget.append('Open: %d' % pSKStock.nOpen)
-        widget.append('Low : %d' % pSKStock.nLow)
-        widget.append('Clos: %d' % pSKStock.nClose)
+        tbrowser.clear()
 
-        widget.append('TickQty: %d' % pSKStock.nTickQty)
+        #tbrowser.append('Index: %d' % pSKStock.sStockidx)
+        tbrowser.append('Decimal: %d' % pSKStock.sDecimal)
+        tbrowser.append('Type: %d' % pSKStock.sTypeNo)
+        tbrowser.append('Market: ' + pSKStock.bstrMarketNo)
+        tbrowser.append('Stock: ' + pSKStock.bstrStockNo)		
+        tbrowser.append('Company: ' + pSKStock.bstrStockName)	
+        tbrowser.append('---------------------------------------')
+        tbrowser.append('High: %d' % pSKStock.nHigh)
+        tbrowser.append('Open: %d' % pSKStock.nOpen)
+        tbrowser.append('Low : %d' % pSKStock.nLow)
+        tbrowser.append('Clos: %d' % pSKStock.nClose)
 
-        widget.append('Ref Cost: %d' % pSKStock.nRef)
+        tbrowser.append('TickQty: %d' % pSKStock.nTickQty)
 
-        widget.append('Bid: %d' % pSKStock.nBid)
-        widget.append('Bc : %d' % pSKStock.nBc)
-        widget.append('Ask: %d' % pSKStock.nAsk)
-        widget.append('Ac : %d' % pSKStock.nAc)
+        tbrowser.append('Ref Cost: %d' % pSKStock.nRef)
 
-        widget.append('TBc: %d' % pSKStock.nTBc)
-        widget.append('TAc: %d' % pSKStock.nTAc)
+        tbrowser.append('Bid: %d' % pSKStock.nBid)
+        tbrowser.append('Bc : %d' % pSKStock.nBc)
+        tbrowser.append('Ask: %d' % pSKStock.nAsk)
+        tbrowser.append('Ac : %d' % pSKStock.nAc)
 
-        widget.append('FutureOI: %d' % pSKStock.nFutureOI)
+        tbrowser.append('TBc: %d' % pSKStock.nTBc)
+        tbrowser.append('TAc: %d' % pSKStock.nTAc)
 
-        widget.append('Total Qty: %d' % pSKStock.nTQty)
-        widget.append('Yesterday Qty: %d' % pSKStock.nYQty)
+        tbrowser.append('FutureOI: %d' % pSKStock.nFutureOI)
 
-        widget.append('Up: %d' % pSKStock.nUp)
-        widget.append('Down: %d' % pSKStock.nDown)
+        tbrowser.append('Total Qty: %d' % pSKStock.nTQty)
+        tbrowser.append('Yesterday Qty: %d' % pSKStock.nYQty)
+
+        tbrowser.append('Up: %d' % pSKStock.nUp)
+        tbrowser.append('Down: %d' % pSKStock.nDown)
         if pSKStock.nSimulate is 0:
-            widget.append('Simulate: Normal')
+            tbrowser.append('Simulate: Normal')
         elif pSKStock.nSimulate is 1:
-            widget.append('Simulate: trial calculation')
+            tbrowser.append('Simulate: trial calculation')
             
 #main
 if '__main__' in __name__:
