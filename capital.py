@@ -245,7 +245,7 @@ class Capital(QtWidgets.QMainWindow, Ui_MainWindow):
         if market is 0:
             root.setText(0, '%s (%d)' % (CapitalStockGroup[self.stocklist_num], len(stock)))
         else:
-            root.setText(0, 'Group %d (%d)' % self.stocklist_num)
+            root.setText(0, 'Group %d (%d)' % (self.stocklist_num, len(stock)))
 
         for s in stock:
             if len(s) is 0:
