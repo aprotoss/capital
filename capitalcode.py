@@ -85,11 +85,8 @@ CapitalCode = {
     3024:['SK_SUBJECT_MARKET_NO_IS_OUT_OF_RANGE','國內市場代碼超出範圍 (0~4)'],
     151: ['SK_ERROR_LOGIN_WRONG_PASSWORD','密碼錯誤'],
     152: ['SK_ERROR_LOGIN_WRONG_PASSWORD_OVER_LIMIT','密碼輸入錯誤次數超過上限'],
-    153: ['SK_ERROR_LOGIN_WRONG_ID ','您輸入的資料錯誤！請輸入正確的身份證字號'],
+    153: ['SK_ERROR_LOGIN_WRONG_ID','您輸入的資料錯誤！請輸入正確的身份證字號'],
     4001:['SK_KLINE_DATA_TYPE_NOT_FOUND','KLINE TYPE 超出選擇範圍。'],
-    151: ['SK_ERROR_LOGIN_WRONG_PASSWORD',''],
-    152: ['SK_ERROR_LOGIN_WRONG_PASSWORD_OVER_LIMIT ',''],
-    153: ['SK_ERROR_LOGIN_WRONG_ID ',''],
     9999:['SK_FAIL',''],
     0   :['SK_SUCCESS', '成功']
 }
