@@ -93,7 +93,6 @@ class Agent(QtCore.QObject):
         except:
             self.errorMsg.emit('set CMD: %s' % args[0], 1)
 
-        #lock.release()
         return res
 #
 # Normal Command
@@ -150,10 +149,6 @@ class Agent(QtCore.QObject):
 
     #Action: GetStockKLine
     def GetStockKLine(self):
-        #if len(self._stocklist) is 0:
-        #    self.errorMsg.emit('Stocklist do not exist', False)
-        #    return False
-        
         try:
             if self.getstockklineThread.isRunning():
                 self.errorMsg.emit('stockkline already exist', False)
@@ -187,12 +182,9 @@ class Agent(QtCore.QObject):
             sp[1] = 0
 
         if sp[0] > 34:
-            #self.getstockklineTimer.stop()
             self.getstockklineClass.stop()
             del self.getstockklineClass
             del self.getstockklineThread
-            #del self.getstockklineTimer
-            #self.klinefinish.emit()
             self.successMsg.emit('Get Stocks Finish')
 
 
@@ -228,10 +220,10 @@ class Agent(QtCore.QObject):
 
         #signals - skquote
         self.skquoteevents.onnotifyservertime.connect(self.timerkeeping_cb)
-        self.skquoteevents.onnotifystocklist.connect(self.stocklist_cb)
+        self.skquoteevents.onnotifystocklist.connect(self.stocklist_cb, QtCore.Qt.QueuedConnection)
         self.skquoteevents.onconnection.connect(self.onconnection_cb)
         self.skquoteevents.onnotifyquote.connect(self.onnotifyquote_cb)
-        self.skquoteevents.onnotifyklinedata.connect(self.onnotifyklinedata_cb)
+        self.skquoteevents.onnotifyklinedata.connect(self.onnotifyklinedata_cb, QtCore.Qt.QueuedConnection)
         
     def timerkeeping_cb(self, strTime):
         self.timerkeeping.emit(strTime)

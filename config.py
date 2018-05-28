@@ -3,7 +3,8 @@
 #History Path
 HistoryPath = './history/'
 WarrantPath = HistoryPath + 'warrant/'
-CachePath = HistoryPath + 'Cache'
+CachePath = HistoryPath + 'cache'
+StocksPath = HistoryPath + 'stocks'
 
 #COM Object DLL
 CapitalDLL = './CapitalApi_2.13.11/API/x86/SKCOM.dll'
