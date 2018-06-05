@@ -135,3 +135,7 @@ CapitalStockGroup = {
     33: '權證',
     34: '上市指數'
 }
+
+#CSV FIELDS
+FIELD = ['Date','Open','High','Low','Close','Volume']
+FIELDTYPES = {'Date': str, 'Open': float, 'High': float, 'Low': float, 'Close': float, 'Volume': int}

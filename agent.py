@@ -2,7 +2,6 @@
 #Capital
 from capitalevent import *
 from capitalcode import CapitalStockGroup
-from capitalaction import WriteStockKLine
 
 from config import *
 
@@ -157,11 +156,11 @@ class Agent(QtCore.QObject):
             #threads
             self.stockpoint = [1, 0]
 
-            self.getstockklineThread = QtCore.QThread()
-            self.getstockklineClass = WriteStockKLine()
-            self.getstockklineClass.moveToThread(self.getstockklineThread)
-            self.getstockklineThread.started.connect(self.getstockklineClass.process)
-            self.getstockklineThread.start()
+            #self.getstockklineThread = QtCore.QThread()
+            #self.getstockklineClass = WriteStockKLine()
+            #self.getstockklineClass.moveToThread(self.getstockklineThread)
+            #self.getstockklineThread.started.connect(self.getstockklineClass.process)
+            #self.getstockklineThread.start()
 
         return True
 

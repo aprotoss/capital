@@ -56,7 +56,6 @@ class CollectHistory(QtWidgets.QMainWindow, Ui_MainWindow):
         #Function Button
         self.saveAllStocks.clicked.connect(self.on_saveallstocks_cb)
         self.mergeStocks.clicked.connect(self.on_mergestocks_cb)
-        self.minkLineBtn.clicked.connect(self.on_minklinebtn_cb)
 
         #WriteKLine Object
         self.agent.GetStockKLine()
@@ -196,25 +195,19 @@ class CollectHistory(QtWidgets.QMainWindow, Ui_MainWindow):
     def on_savestock_finish_cb(self, msg):
         self.saveAllStocks.setChecked(False)
         self.msgBrowser.append('Save Stocks ... Finish')
+
+    def on_processing_cb(self, msg):
+        self.msgBrowser.append(msg)
     
     def on_mergestocks_cb(self):
-        self.marshalstockThread = QtCore.QThread(self) 
-        self.marshalstockObject = MarshalStock()
-        self.marshalstockObject.moveToThread(self.marshalstockThread)
-        self.marshalstockObject.processing.connect(self.on_marshalstock_processing_cb)
-        self.marshalstockObject.finish.connect(self.successmsg_cb)
-        self.marshalstockThread.started.connect(self.marshalstockObject.process)
-        self.marshalstockThread.start()
+        self.mergestockThread = QtCore.QThread(self) 
+        self.mergestockObject = MergeStock()
+        self.mergestockObject.moveToThread(self.mergestockThread)
+        self.mergestockObject.processing.connect(self.on_processing_cb)
+        self.mergestockObject.finish.connect(self.successmsg_cb)
+        self.mergestockThread.started.connect(self.mergestockObject.process)
+        self.mergestockThread.start()
         
-    def on_minklinebtn_cb(self, checked):
-        self.minKlineThread = QtCore.QThread(self) 
-        self.minKlineObject = minKLine()
-        self.minKlineObject.moveToThread(self.minKlineThread)
-        self.minKlineThread.started.connect(self.minKlineObject.process)
-        self.minKlineObject.processing.connect(self.on_marshalstock_processing_cb)
-        self.minKlineObject.finish.connect(self.successmsg_cb)
-        self.minKlineObject.setMin(int(self.minklineEdit.text()))
-        self.minKlineThread.start()
             
 if '__main__' in __name__:
     app = QtWidgets.QApplication(sys.argv)
