@@ -6,14 +6,14 @@ from datetime import datetime
 from config import *
 from pathlib import Path
 import pandas as pd
+import numpy as np
 import subprocess
 import shutil
 import requests
-import glob
-import csv
 import time
+import json
+import csv
 import os
-
 
 #Qt
 from PyQt5 import QtCore
@@ -25,6 +25,7 @@ except:
 
 class GetWarrantDoc(QtCore.QObject):
     getwarrantdoc = QtCore.pyqtSignal(bool, str)
+    processing = QtCore.pyqtSignal(str)
     def __init__(self, parent=None):
         super(GetWarrantDoc, self).__init__(parent)
 
@@ -38,13 +39,60 @@ class GetWarrantDoc(QtCore.QObject):
             self.getwarrantdoc.emit(False, date)
             return None
 
-        with open(WarrantPath + filename, 'wb') as xls:
+        with open(CachePath + '/' + filename, 'wb') as xls:
             xls.write(res.content)
+
+        #split cache warrant file to warrant file with stocks filenames
+        cpath = Path(CachePath)
+        for xls in cpath.glob('*.xls'):
+            date = str(xls).split('_')[-1].split('.')[0]
+            #print(date)
+            self.splitWarrent(xls, date)
+            xls.unlink()
         self.getwarrantdoc.emit(True, date)
+
+    def splitWarrent(self, target, date):
+        print('Open Target: %s' % target)
+        self.processing.emit('To marshal warrant: %s' % target)
+        wtlog = Path(WarrantPath + '/' + 'wthistory.log')
+        log = None
+        if wtlog.exists(): 
+            log = open(wtlog, 'r')
+            log_data = log.read()
+            log.close()
+        else:
+            log_data = '[]'
+        jlog = json.loads(log_data)
+
+        if date in jlog:
+            self.processing.emit('Warrant: %s already save in file' % target)
+            return None
+
+        df = pd.read_excel(target, skiprows=5, header=0, names=WFIELD)
+        df['Date'] = date
+        stock_list = df['Stock'].value_counts().index
+    
+        for i in stock_list:
+            sdf = df.loc[df['Stock'] == i]
+            tdf = None
+    
+            p = Path(WarrantPath + '/' + i + '.wrt')
+            if p.exists():
+                tdf = pd.read_csv(str(p), names=WTFIELD)
+                tdf = tdf.append(sdf)
+            else:
+                tdf = sdf
+            tdf = tdf.replace('-', np.nan)
+            tdf = tdf.sort_values('Date')
+            tdf.to_csv(str(p), index=False, header=False)
+
+        jlog.append(date)
+        log = open(wtlog, 'w')
+        json.dump(jlog, log, sort_keys=True, indent=4)
 
 class SaveStock(QtCore.QObject):
     processing = QtCore.pyqtSignal(str)
-    finish = QtCore.pyqtSignal(str)
+    finish = QtCore.pyqtSignal()
     def __init__(self, parent=None):
         super(SaveStock, self).__init__(parent)
         self.uid = None
@@ -64,61 +112,11 @@ class SaveStock(QtCore.QObject):
         for idx, group in enumerate(self.stocklist):
             if idx is 32:
                 idx += 1
-            self.processing.emit(CapitalStockGroup[idx+1])
+            self.processing.emit('Save Group: %s ' % CapitalStockGroup[idx+1])
             cmd = ['python', 'getkline.py', self.uid, self.pwd]
             for stock in group:
                 cmd.append(stock)
             r = subprocess.call(cmd)
             print('Exit code:', r)
 
-        self.finish.emit('Finish')
-                
-class MergeStock(QtCore.QObject):
-    processing = QtCore.pyqtSignal(str)
-    finish = QtCore.pyqtSignal(str)
-    def __init__(self, parent=None):
-        super(__class__, self).__init__(parent)
-
-    @QtCore.pyqtSlot()
-    def process(self):
-        for i in glob.glob(CachePath + '/*.csv'):
-            stocknocsv = i.split('\\')[1]
-            targetPath = StocksPath + '/' + stocknocsv[:-4] 
-            self.processing.emit('merage stock: %s' % stocknocsv[:-4])
-            if not Path(targetPath).exists():
-                os.makedirs(targetPath)
-
-            #self.marshalCSV(targetPath + '/' + stocknocsv, i)
-            self.splitCSV(stocknocsv[:-4])
-            os.remove(i)
-        self.finish.emit('Merge Process done.')
-
-    def splitCSV(self, stockno):
-        filename = CachePath + '/' + stockno + '.csv'
-        df = pd.read_csv(filename, names=FIELD, dtype=FIELDTYPES)
-
-        fname = None
-        pre_date = None
-        fp = None
-
-        for i in df.values:
-            date, time = i[0].split(' ')
-            date = date.replace('/', '-')
-            fname = StocksPath + '/' + stockno + '/' + date + '.1min'
-
-            #already open the file or not
-            if pre_date != date:
-                #file already exists
-                if os.path.exists(fname):
-                    print('%s already exists' % fname)
-                    continue
-                if fp is not None:
-                    fp.close()
-                fp = open(fname, 'w')
-
-            fp.write('%s, %f, %f, %f, %f, %d\n'% (time, i[1], i[2], i[3], i[4], i[5]))
-            pre_date = date
-
-        if fp is not None:
-            fp.close()
-
+        self.finish.emit()

@@ -53,9 +53,7 @@ class CandlestickItem(pg.GraphicsObject):
         ## (in this case, QPicture does all the work of computing the bouning rect for us)
         return QtCore.QRectF(self.picture.boundingRect())
 
-FIELD = ['Date','Open','High','Low','Close','Volume']
-FIELDTYPES = {'Date': str, 'Open': np.float16, 'High':
-        np.float16, 'Low': np.float16, 'Close': np.float16, 'Volume': np.int32}
+
 
 #class plotWidget(QtWidgets.QGraphicsView):
 class PlotCanvas(pg.PlotWidget):

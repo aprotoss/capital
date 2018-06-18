@@ -15,6 +15,7 @@ from functools import partial
 from config import *
 
 import sys
+import json
 import datetime
 
 class CollectHistory(QtWidgets.QMainWindow, Ui_MainWindow):
@@ -50,15 +51,35 @@ class CollectHistory(QtWidgets.QMainWindow, Ui_MainWindow):
 
         #Calendar 
         self.calendar.clicked.connect(self.selectDate)
-        self.getWarrantLabel.setTitle(self.getWarrantLabel.title() + '('+ QtCore.QDate.currentDate().toString('yyyy-MM-dd') + ')')
+        self.getWarrantLabel.setTitle(self.getWarrantLabel.title() + '(' + QtCore.QDate.currentDate().toString('yyyy-MM-dd') + ')')
         self.calendar.setSelectedDate(QtCore.QDate.currentDate())
+        self.setCalendarStyle()
 
         #Function Button
         self.saveAllStocks.clicked.connect(self.on_saveallstocks_cb)
-        self.mergeStocks.clicked.connect(self.on_mergestocks_cb)
 
         #WriteKLine Object
         self.agent.GetStockKLine()
+
+    def setCalendarStyle(self):
+        wtlog = Path(WarrantPath + '/' + 'wthistory.log')
+        log = None
+        if wtlog.exists(): 
+            log = open(wtlog, 'r')
+            log_data = log.read()
+            log.close()
+        else:
+            return None
+
+        jlog = json.loads(log_data)
+
+        for date in jlog:
+            d = date.split('-')
+            qd = QtCore.QDate(int(d[0]), int(d[1]), int(d[2]))
+            dtf = self.calendar.dateTextFormat(qd)
+            dtf.setFontUnderline(True)
+            dtf.setFontItalic(True)
+            self.calendar.setDateTextFormat(qd, dtf)
 
     def selectDate(self, date):
         self.msgBrowser.append('Start Get Warrant Doc ...')
@@ -66,12 +87,14 @@ class CollectHistory(QtWidgets.QMainWindow, Ui_MainWindow):
         self.getwarrantdocObj = GetWarrantDoc()
         self.getwarrantdocObj.moveToThread(self.getwarrantThread)
         self.getwarrantdocObj.getwarrantdoc.connect(self.getwarrantdoc_cb)
+        self.getwarrantdocObj.processing.connect(self.on_normal_processing_cb)
         self.getwarrantThread.started.connect(partial(self.getwarrantdocObj.process, date.toString('yyyy-MM-dd')))
         self.getwarrantThread.start()
     
     def getwarrantdoc_cb(self, res, date):
         if res:
             self.msgBrowser.append('Get Warrant Doc: %s ... Done' % date)
+            self.setCalendarStyle()
         else:
             self.msgBrowser.append('Get Warrant Doc: %s ... Fail' % date)
     
@@ -156,16 +179,18 @@ class CollectHistory(QtWidgets.QMainWindow, Ui_MainWindow):
         res = self.agent.Login(self.userIDLine.text(), self.passwordLine.text(), checked)
         if not res:
             self.connectBtn.setChecked(False)
+    
+    def on_normal_processing_cb(self, msg):
+        self.msgBrowser.append(msg)
 
     def on_saveallstocks_cb(self, checked):
         tree = self.stockTree
-
         self.saveAllStocks.setChecked(True)
         
         self.saveStockThread = QtCore.QThread(self) 
         self.saveStockObject = SaveStock()
         self.saveStockObject.moveToThread(self.saveStockThread)
-        self.saveStockObject.processing.connect(self.on_savestock_processing_cb)
+        self.saveStockObject.processing.connect(self.on_normal_processing_cb)
         self.saveStockObject.finish.connect(self.on_savestock_finish_cb)
         self.saveStockThread.started.connect(self.saveStockObject.process)
         self.saveStockObject.setProfile(self.userIDLine.text(), self.passwordLine.text())
@@ -178,37 +203,16 @@ class CollectHistory(QtWidgets.QMainWindow, Ui_MainWindow):
             rootItem = tree.topLevelItem(i)
             for j in range(rootItem.childCount()):
                 childItem = rootItem.child(j)
-                #print(childItem.data(1, 0), childItem.data(0, 0))
                 tmp.append(childItem.data(0, 0))
-        #        self.on_stocktree_dclicked_cb(childItem, None)
-        #        QtTest.QTest.qWait(5000)
             slist.append(tmp)
         self.saveStockObject.setStockList(slist) 
         self.saveStockThread.start()
 
-        #self.saveAllStocks.setChecked(False)
-        #self.msgBrowser.append('Save Stocks ... Done')
-    
-    def on_savestock_processing_cb(self, msg):
-        self.msgBrowser.append('Save Group: %s' % msg)
-
-    def on_savestock_finish_cb(self, msg):
+    def on_savestock_finish_cb(self):
         self.saveAllStocks.setChecked(False)
         self.msgBrowser.append('Save Stocks ... Finish')
 
-    def on_processing_cb(self, msg):
-        self.msgBrowser.append(msg)
-    
-    def on_mergestocks_cb(self):
-        self.mergestockThread = QtCore.QThread(self) 
-        self.mergestockObject = MergeStock()
-        self.mergestockObject.moveToThread(self.mergestockThread)
-        self.mergestockObject.processing.connect(self.on_processing_cb)
-        self.mergestockObject.finish.connect(self.successmsg_cb)
-        self.mergestockThread.started.connect(self.mergestockObject.process)
-        self.mergestockThread.start()
         
-            
 if '__main__' in __name__:
     app = QtWidgets.QApplication(sys.argv)
     ui = CollectHistory()
