@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #COM Object DLL
-CapitalDLL = 'C:\\capital\\CapitalAPI_2.13.12\\API\\x86\\SKCOM.dll'
+SKCOMDLL = 'C:\\capital\\CapitalAPI_2.13.12\\API\\x86\\SKCOM.dll'
+SKLogPath = './Logs'
 
 #History Path
 HistoryPath = './history/'
@@ -13,8 +14,8 @@ WarrantBaseFilename = 'warrant_NEWVOL_'
 WarrantPath = HistoryPath + 'warrant'
 
 #Staock label
-KL_FIELD = ['Date','Open','High','Low','Close','Volume']
-KL_FIELDTYPES = {'Date': str, 'Open': float, 'High': float, 'Low': float, 'Close': float, 'Volume': int}
+KLFIELD = ['Date','Open','High','Low','Close','Volume']
+KLFIELDTYPES = {'Date': str, 'Open': float, 'High': float, 'Low': float, 'Close': float, 'Volume': int}
 
 WFIELD = ['Code', 'Name', 'Vendor', 'Cost', 'Fluctuation', 'F-Percent', 'Volumn', 'Buy', 'Sell', 'Spread', 'Premium',
         'IOTM', 'Theoretical', 'IV', 'Leverage', 'Remainder', 'ExerciseRatio', 'Stock', 'StockName', 'StockCost',

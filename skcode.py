@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-
-CapitalCode = {
+SKCode = {
     1000:['SK_ERROR_LOGIN_FIRST','請先由Center 進行登入動作'],
     1001:['SK_ERROR_INITIALIZE_FAIL','登入失敗，請由LOG查看失敗原因。'],
     1002:['SK_ERROR_ACCOUNT_NOT_EXIST','交易帳號不存在。'],
@@ -51,7 +50,11 @@ CapitalCode = {
     1047:['SK_ERROR_SMART_TRADE_ORDER_SERVER_INVALID','智慧單中台主機不存在'],
     1048:['SK_ERROR_CANCEL_ORDER_SMARTKEY_INVALID','智慧單(停損單)序號為無效值'],
     1049:['SK_ERROR_OVERSEA_FUTURE_SPREAD_ORDER','海期價差委託時，（價格為非０數值）出現分子填入負號之錯誤'],
-    1050:['待補','待補'],
+    1050:['SK_ERROR_MIT_ORDER_EXCLUDE_SPREAD_PRODUCT','智慧單MIT不可委託價差商品'],
+    1051:['SK_ERROR_SGX_API_ORDER_SEQNO_CONFILICT','SGX API 委託序號重覆'],
+    1052:['SK_ERROR_OVERSEA_FUTURE_SPREAD_ORDER_NO_DAYTRADE','海期價差委託不可帶當沖'],
+    1053:['SK_ERROR_SGX_API_LOGON_FAIL','SGX API登入失敗'],
+
     2001:['SK_WARNING_OF_COM_DATA_MISSING','海期交易商品檔下載失敗'],
     2002:['SK_WARNING_TS_READY',''],
     2003:['SK_WARNING_LOGIN_ALREADY','ID已登入，無需重覆登入。'],
@@ -83,15 +86,17 @@ CapitalCode = {
     3022:['SK_SUBJECT_CONNECTION_SOLCLIENTAPI_FAIL','(無網路)連線錯誤'],
     3023:['SK_SUBJECT_STOCKNO_IS_INVALID','商品代碼無效'],
     3024:['SK_SUBJECT_MARKET_NO_IS_OUT_OF_RANGE','國內市場代碼超出範圍 (0~4)'],
+    3025:['SK_SUBJECT_CANT_ACCEPT_SPREAD_STOCKNO','不可委託價差商品'],
+    3026:['SK_SUBJECT_CONNECTION_SGX_API_READY','SGX API專線建立完成'],
     151: ['SK_ERROR_LOGIN_WRONG_PASSWORD','密碼錯誤'],
     152: ['SK_ERROR_LOGIN_WRONG_PASSWORD_OVER_LIMIT','密碼輸入錯誤次數超過上限'],
     153: ['SK_ERROR_LOGIN_WRONG_ID','您輸入的資料錯誤！請輸入正確的身份證字號'],
     4001:['SK_KLINE_DATA_TYPE_NOT_FOUND','KLINE TYPE 超出選擇範圍。'],
-    9999:['SK_FAIL',''],
+    9999:['SK_FAIL','失敗'],
     0   :['SK_SUCCESS', '成功']
 }
 
-CapitalMarket = {
+SKMarket = {
     0: '上市',
     1: '上櫃',
     2: '期貨',
@@ -99,7 +104,44 @@ CapitalMarket = {
     4: '興櫃'
 }
 
-CapitalStockGroup = {
+SKStockGroup = {
+    0: '水泥',
+    1: '食品',
+    2: '塑膠',
+    3: '紡織',
+    4: '機電',
+    5: '電器',
+    6: '玻璃',
+    7: '造紙',
+    8: '鋼鐵',
+    9: '橡膠',
+    10: '汽車',
+    11: '營建',
+    12: '運輸',
+    13: '觀光',
+    14: '金融',
+    15: '百貨',
+    16: '其它',
+    17: '化工',
+    18: '生技醫療',
+    19: '油電燃氣',
+    20: '半導體',
+    21: '電腦',
+    22: '光電',
+    23: '通訊',
+    24: '零組件',
+    25: '電子通路',
+    26: '資訊服務',
+    27: '其他電子',
+    28: '公司債',
+    29: '受益憑證',
+    30: 'ETF',
+    31: '存託憑證',
+    32: '權證',
+    33: '上市指數'
+}
+'''
+SKStockGroup = {
     1: '水泥',
     2: '食品',
     3: '塑膠',
@@ -135,7 +177,4 @@ CapitalStockGroup = {
     33: '權證',
     34: '上市指數'
 }
-
-#CSV FIELDS
-FIELD = ['Date','Open','High','Low','Close','Volume']
-FIELDTYPES = {'Date': str, 'Open': float, 'High': float, 'Low': float, 'Close': float, 'Volume': int}
+'''

@@ -1,33 +1,54 @@
-# -*- coding:utf-8 -*-
-from collections import OrderedDict
-from collections import deque
-from capitalcode import *
-from datetime import datetime
-from config import *
-from pathlib import Path
-import pandas as pd
-import numpy as np
-import subprocess
-import shutil
-import requests
-import time
-import json
-import csv
-import os
-
+# -*- coding: utf-8 -*-
 #Qt
-from PyQt5 import QtCore
-
+from capitalui import Ui_MainWindow
+from PyQt5 import QtCore, QtGui, QtWidgets
 try:
     from PyQt5.QtCore import QString
 except:
     QString = str
 
-class GetWarrantDoc(QtCore.QObject):
-    getwarrantdoc = QtCore.pyqtSignal(bool, str)
-    processing = QtCore.pyqtSignal(str)
+#sys
+from config import *
+from pathlib import Path
+from functools import partial
+import requests
+import json
+import csv
+
+class Warrant(QtCore.QObject):
+    message = QtCore.pyqtSignal(str)
     def __init__(self, parent=None):
-        super(GetWarrantDoc, self).__init__(parent)
+        super(__class__, self).__init__(parent)
+
+    def downloadWarrant(self, date):
+        sdate = date.toString('yyyy-MM-dd')
+        self.message.emit('[Warrant] start to get warrant: %s' % sdate)
+        self.getthread = QtCore.QThread(self)
+        self.getwarrantthread = GetWarrantThread()
+        self.getwarrantthread.moveToThread(self.getthread)
+        self.getwarrantthread.message.connect(self.on_message_cb)
+        self.getthread.started.connect(partial(self.getwarrantthread.process, sdate))
+        self.getthread.start()
+
+    def getHistory(self):
+        wtlog = Path(WarrantPath + '/' + 'wthistory.log')
+        log = None
+        if wtlog.exists(): 
+            log = open(wtlog, 'r')
+            log_data = log.read()
+            log.close()
+        else:
+            return []
+
+        return json.loads(log_data)
+        
+    def on_message_cb(self, msg):
+        self.message.emit(msg)
+
+class GetWarrantThread(QtCore.QObject):
+    message = QtCore.pyqtSignal(str)
+    def __init__(self, parent=None):
+        super(__class__, self).__init__(parent)
 
     @QtCore.pyqtSlot()
     def process(self, date):
@@ -36,7 +57,7 @@ class GetWarrantDoc(QtCore.QObject):
 
         res = requests.get(url)
         if res.status_code is not 200:
-            self.getwarrantdoc.emit(False, date)
+            self.message.emit('[Warrant] get warrant: %s fail' % date)
             return None
 
         with open(CachePath + '/' + filename, 'wb') as xls:
@@ -49,11 +70,11 @@ class GetWarrantDoc(QtCore.QObject):
             #print(date)
             self.splitWarrent(xls, date)
             xls.unlink()
-        self.getwarrantdoc.emit(True, date)
+        self.message.emit('[Warrant] get warrant %s success' % date)
 
     def splitWarrent(self, target, date):
         print('Open Target: %s' % target)
-        self.processing.emit('To marshal warrant: %s' % target)
+        self.message.emit('[Warrant] start to marshal warrant %s with history' % target)
         wtlog = Path(WarrantPath + '/' + 'wthistory.log')
         log = None
         if wtlog.exists(): 
@@ -65,7 +86,7 @@ class GetWarrantDoc(QtCore.QObject):
         jlog = json.loads(log_data)
 
         if date in jlog:
-            self.processing.emit('Warrant: %s already save in file' % target)
+            self.message.emit('[warrant] %s already save in file' % target)
             return None
 
         df = pd.read_excel(target, skiprows=5, header=0, names=WFIELD)
@@ -89,34 +110,3 @@ class GetWarrantDoc(QtCore.QObject):
         jlog.append(date)
         log = open(wtlog, 'w')
         json.dump(jlog, log, sort_keys=True, indent=4)
-
-class SaveStock(QtCore.QObject):
-    processing = QtCore.pyqtSignal(str)
-    finish = QtCore.pyqtSignal()
-    def __init__(self, parent=None):
-        super(SaveStock, self).__init__(parent)
-        self.uid = None
-        self.pwd = None
-        self.stocklist = None
-
-    def setProfile(self, uid, pwd):
-        self.uid = uid
-        self.pwd = pwd
-    
-    def setStockList(self, slist):
-        print(slist)
-        self.stocklist = slist
-
-    @QtCore.pyqtSlot()
-    def process(self):
-        for idx, group in enumerate(self.stocklist):
-            if idx is 32:
-                idx += 1
-            self.processing.emit('Save Group: %s ' % CapitalStockGroup[idx+1])
-            cmd = ['python', 'getkline.py', self.uid, self.pwd]
-            for stock in group:
-                cmd.append(stock)
-            r = subprocess.call(cmd)
-            print('Exit code:', r)
-
-        self.finish.emit()
