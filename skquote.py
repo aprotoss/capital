@@ -49,3 +49,41 @@ class SKQuoteLibEvents(QtCore.QObject):
 
     def OnNotifyTicksLong(self, sMarketNo, nIndex, nPtr, nDate, nTimehms, nTimemillismicros, nBid, nAsk, nClose, nQty, nSimulate):
         print("[SKQuote] OnNotifyTicksLong")
+
+
+    def OnNotifyTicks(self, sMarketNo, nIndex, nPtr, nData, nTimehms, nTimemillismicros, nBid, nAsk, nClose, nQty, nSimulate):
+        #[SKQuote] On Notify Ticks: 0 - 26999 - 2757 - 20230807 - 130906 - 846925 - 56000 - 56100 - 56100 - 1 - 0
+        print(f"[SKQuote] On Notify Ticks: {sMarketNo} - {nIndex} - {nPtr} - {nData} - {nTimehms} - {nTimemillismicros} - {nBid} - {nAsk} - {nClose} - {nQty} - {nSimulate}")
+
+    def OnNotifyHistoryTicks(self, sMarketNo, nIndex, nPtr, nData, nTimehms, nTimemillismicros, nBid, nAsk, nClose, nQty, nSimulate):
+        print("[SKQuote] On Notify History Ticks")
+
+    def OnNotifyBest5(self, sMarketNo, nStockidx, nBestBid1, nBestBidQty1, nBestBid2, nBestBidQty2, nBestBid3, nBestBidQty3, nBestBid4, nBestBidQty4, nBestBid5, nBestBidQty5, nExtendBid, nExtendBidQty, nBestAsk1, nBestAskQty1, nBestAsk2, nBestAskQty2, nBestAsk3, nBestAskQty3, nBestAsk4, nBestAskQty4, nBestAsk5, nBestAskQty5, nExtendAsk, nExtendAskQty, nSimulate):
+        # [SKQuote] On Notify Best5: 0 - 26999
+        # 56000 - 84
+        # 55900 - 195
+        # 55800 - 707
+        # 55700 - 164
+        # 55600 - 244
+        # Exten: -999999 - -999999
+        # 56100 - 191
+        # 56200 - 312
+        # 56300 - 200
+        # 56400 - 172
+        # 56500 - 176
+        # -999999 - 56000
+        # 0
+        print(f"[SKQuote] On Notify Best5: {sMarketNo} - {nStockidx}")
+        print(f"{nBestBid1} - {nBestBidQty1}")
+        print(f"{nBestBid2} - {nBestBidQty2}")
+        print(f"{nBestBid3} - {nBestBidQty3}")
+        print(f"{nBestBid4} - {nBestBidQty4}")
+        print(f"{nBestBid5} - {nBestBidQty5}")
+        print(f"Exten: {nExtendBid} - {nExtendBid}")
+        print(f"{nBestAsk1} - {nBestAskQty1}")
+        print(f"{nBestAsk2} - {nBestAskQty2}")
+        print(f"{nBestAsk3} - {nBestAskQty3}")
+        print(f"{nBestAsk4} - {nBestAskQty4}")
+        print(f"{nBestAsk5} - {nBestAskQty5}")
+        print(f"{nExtendAsk} - {nExtendAskQty}")
+        print(f"{nSimulate}")

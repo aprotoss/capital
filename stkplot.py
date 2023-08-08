@@ -19,7 +19,10 @@ class StkPlot(pg.GraphicsLayoutWidget):
         self.candlestick = None
         self.bar = None
         self.rsiItem = None
-        self._sma = 10
+        self._sma5 = 5
+        self._sma10 = 10
+        self._sma20 = 20
+        self._sma60 = 60
         self.plot1 = self.addPlot(title = 'Plot 1', row=0, col=0)
         self.plot2 = self.addPlot(title = 'Plot 2', row=1, col=0)
 
@@ -32,7 +35,10 @@ class StkPlot(pg.GraphicsLayoutWidget):
     def set_default_color(self):
         #palette
         self._color_KLineBoard = (192, 191, 188, 255)
-        self._color_SMA = (220, 138, 221, 79)
+        self._color_SMA5 = (128, 128, 128, 128)
+        self._color_SMA10 = (1, 172, 245, 128)
+        self._color_SMA20 = (210, 8, 161, 128)
+        self._color_SMA60 = (252, 193, 0, 128)
         self._color_Volume = (28, 113, 216, 128)
         self._color_RSI_up = (248, 228, 92, 255)
         self._color_RSI_down = (87, 227, 137, 255)
@@ -43,9 +49,12 @@ class StkPlot(pg.GraphicsLayoutWidget):
 
     def set_default_draw(self):
         self._draw_KLine = True
-        self._draw_SMA = True
+        self._draw_SMA5 = True
+        self._draw_SMA10 = True
+        self._draw_SMA20 = True
+        self._draw_SMA60 = True
         self._draw_RSI = True
-        self._draw_Volume = True
+        self._draw_Volume = True 
         self._draw_KD = True
         self._draw_BBands = True
 
@@ -54,9 +63,18 @@ class StkPlot(pg.GraphicsLayoutWidget):
         #print(self._stkdata.stk_data)
         self._ticks = self._stkdata.stk_data.tail(self._tick_range)
 
-        #SMA
-        s = self._stkdata.SMA(self._sma)
-        self._sma_ticks = s[f"SMA_{self._sma}"].tail(self._tick_range).reset_index(drop=True)
+        #SMA5
+        s = self._stkdata.SMA(self._sma5)
+        self._sma5_ticks = s[f"SMA_{self._sma5}"].tail(self._tick_range).reset_index(drop=True)
+        #SMA10
+        s = self._stkdata.SMA(self._sma10)
+        self._sma10_ticks = s[f"SMA_{self._sma10}"].tail(self._tick_range).reset_index(drop=True)
+        #SMA20
+        s = self._stkdata.SMA(self._sma20)
+        self._sma20_ticks = s[f"SMA_{self._sma20}"].tail(self._tick_range).reset_index(drop=True)
+        #SMA10
+        s = self._stkdata.SMA(self._sma60)
+        self._sma60_ticks = s[f"SMA_{self._sma60}"].tail(self._tick_range).reset_index(drop=True)
 
         #BBands
         self._bbands_ticks = self._stkdata.BBands(10, 2).reset_index(drop=True)
@@ -95,8 +113,14 @@ class StkPlot(pg.GraphicsLayoutWidget):
         #plot 1
         if self._draw_KLine:
             self.draw_candlestick()
-        if self._draw_SMA:
-            self.draw_SMA_()
+        if self._draw_SMA5:
+            self.draw_SMA5_()
+        if self._draw_SMA10:
+            self.draw_SMA10_()
+        if self._draw_SMA20:
+            self.draw_SMA20_()
+        if self._draw_SMA60:
+            self.draw_SMA60_()
         if self._draw_BBands:
             self.draw_BBands_()
 
@@ -131,12 +155,21 @@ class StkPlot(pg.GraphicsLayoutWidget):
         self.plot1.addItem(self.candlestick)
         self.plot1.setYRange(maxY, minY)
     
-    def draw_SMA_(self):
-        self.plot1.plot(self._sma_ticks, pen=pg.mkPen(self._color_SMA))
+    def draw_SMA5_(self):
+        self.plot1.plot(self._sma5_ticks, pen=pg.mkPen(self._color_SMA5))
+    
+    def draw_SMA10_(self):
+        self.plot1.plot(self._sma10_ticks, pen=pg.mkPen(self._color_SMA10))
+    
+    def draw_SMA20_(self):
+        self.plot1.plot(self._sma20_ticks, pen=pg.mkPen(self._color_SMA20))
+    
+    def draw_SMA60_(self):
+        self.plot1.plot(self._sma60_ticks, pen=pg.mkPen(self._color_SMA60))
         
     def draw_BBands_(self):
         self.plot1.plot(self._bbands_upper_ticks, pen=pg.mkPen(self._color_BBands_upper))
-        #middle use SMA to replace
+        #middle use SMA5 to replace
         self.plot1.plot(self._bbands_middle_ticks, pen='w')
         self.plot1.plot(self._bbands_lower_ticks, pen=pg.mkPen(self._color_BBands_lower))
         
@@ -208,7 +241,10 @@ class StkPlot(pg.GraphicsLayoutWidget):
                 <P>Close: {self._ticks.iloc[index][4]:.3f}</p>\
                 <p>Volum: {self._volume.iloc[index]}</p>\
                 <p>--------- SMA -----------</p>\
-                <p>SMA_{self._sma} {self._sma_ticks.iloc[index]:.3f}\
+                <p>SMA5{self._sma5} {self._sma5_ticks.iloc[index]:.3f}\
+                <p>SMA5{self._sma10} {self._sma10_ticks.iloc[index]:.3f}\
+                <p>SMA5{self._sma20} {self._sma20_ticks.iloc[index]:.3f}\
+                <p>SMA5{self._sma60} {self._sma60_ticks.iloc[index]:.3f}\
                 <p>--------- BBands --------</p>\
                 <p>UPPER: {self._bbands_upper_ticks.iloc[index]:.3f} </p>\
                 <p>MIDDL: {self._bbands_middle_ticks.iloc[index]:.3f} </p>\
@@ -239,13 +275,6 @@ class StkPlot(pg.GraphicsLayoutWidget):
         self._tick_range = rng   
 
     @property
-    def sma(self):
-        return self._sma
-    @sma.setter
-    def sma(self, sma):
-        self._sma = sma
-
-    @property
     def color_KLineBoard(self):
         """The color_KLineBoard property."""
         return self._color_KLineBoard
@@ -254,12 +283,36 @@ class StkPlot(pg.GraphicsLayoutWidget):
         self._color_KLineBoard = value
 
     @property
-    def color_SMA(self):
-        """The color_SMA property."""
-        return self._color_SMA
-    @color_SMA.setter
-    def color_SMA(self, value):
-        self._color_SMA = value
+    def color_SMA5(self):
+        """The color_SMA5 property."""
+        return self._color_SMA5
+    @color_SMA5.setter
+    def color_SMA5(self, value):
+        self._color_SMA5 = value
+    
+    @property
+    def color_SMA10(self):
+        """The color_SMA10 property."""
+        return self._color_SMA10
+    @color_SMA10.setter
+    def color_SMA10(self, value):
+        self._color_SMA10 = value
+    
+    @property
+    def color_SMA20(self):
+        """The color_SMA20 property."""
+        return self._color_SMA20
+    @color_SMA20.setter
+    def color_SMA20(self, value):
+        self._color_SMA20 = value
+    
+    @property
+    def color_SMA60(self):
+        """The color_SMA60 property."""
+        return self._color_SMA60
+    @color_SMA60.setter
+    def color_SMA60(self, value):
+        self._color_SMA60 = value
 
     @property
     def color_RSI_up(self):
@@ -326,12 +379,36 @@ class StkPlot(pg.GraphicsLayoutWidget):
         self._draw_KLine = value
 
     @property
-    def draw_SMA(self):
-        """The draw_SMA property."""
-        return self._draw_SMA
-    @draw_SMA.setter
-    def draw_SMA(self, value):
-        self._draw_SMA = value
+    def draw_SMA5(self):
+        """The draw_SMA5 property."""
+        return self._draw_SMA5
+    @draw_SMA5.setter
+    def draw_SMA5(self, value):
+        self._draw_SMA5 = value
+    
+    @property
+    def draw_SMA10(self):
+        """The draw_SMA10 property."""
+        return self._draw_SMA10
+    @draw_SMA10.setter
+    def draw_SMA10(self, value):
+        self._draw_SMA10 = value
+    
+    @property
+    def draw_SMA20(self):
+        """The draw_SMA20 property."""
+        return self._draw_SMA20
+    @draw_SMA20.setter
+    def draw_SMA20(self, value):
+        self._draw_SMA20 = value
+    
+    @property
+    def draw_SMA60(self):
+        """The draw_SMA60 property."""
+        return self._draw_SMA60
+    @draw_SMA60.setter
+    def draw_SMA60(self, value):
+        self._draw_SMA60 = value
 
     @property
     def draw_RSI(self):

@@ -7,12 +7,12 @@ from PyQt6.QtWidgets import QDialog
 from PyQt6.QtCore import pyqtSignal
 from stkmultidownloaderui import *
 from stkplot import *
+#SKCOM API
+from skcom import *
 from stkdata import *
 from skcenter import *
 from skreply import *
 from skquote import *
-
-SKCOMDLL = "C:\\capitalAPI\\DLL\\x64\\SKCOM.dll"
 
 class stk_multidownloader(QDialog, Ui_Dialog):
     closed = pyqtSignal()  

@@ -7,6 +7,8 @@ from PyQt6.QtCore import QSize, Qt
 from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QTableWidgetItem, QTreeWidgetItem
 from stkappui import *
 from stkplot import *
+#SKCOM API
+from skcom import *
 from stkdata import *
 from skcenter import *
 from skreply import *
@@ -17,8 +19,6 @@ from stkmultidownloader import *
 from comtypes.client import GetModule
 sys.coinit_flags = 0
 from pythoncom import CoInitialize
-
-SKCOMDLL = "C:\\capitalAPI\\DLL\\x64\\SKCOM.dll"
 
 # Subclass QMainWindow to customize your application's main window
 class stk_app(QMainWindow, Ui_MainWindow):
@@ -46,7 +46,7 @@ class stk_app(QMainWindow, Ui_MainWindow):
         self.stkview_tab.tabCloseRequested.connect(self.stkview_tab_closerequest_cb)
         self.stkview_tab.currentChanged.connect(self.stkview_tab_current_changed_cb)
         self.capital_login_button.clicked.connect(self.capital_login_clicked_cb)
-        self.stocklist_treeWidget.itemClicked.connect(self.stocklist_treeWidget_item_clicked_cb)
+        self.stocklist_treeWidget.itemClicked.connect(self.stocklist_treewidget_item_clicked_cb)
         self.stocklist_tool_box.currentChanged.connect(self.stocklist_tool_box_currentChanged_cb)
         
         #  plotbox - callback
@@ -56,10 +56,16 @@ class stk_app(QMainWindow, Ui_MainWindow):
         self.mins_60_k_button.toggled.connect(self.mins_60_k_button_cb)
         self.mins_270_k_button.toggled.connect(self.mins_270_k_button_cb)
         self.tick_range_spinbox.valueChanged.connect(self.tick_range_spinbox_valueChanged_cb)
+        self.turningwave_button.clicked.connect(self.turningwave_button_clicked_cb)
+        self.sma5_checkBox.stateChanged.connect(self.sma5_checkBox_statechanged_cb)
+        self.sma10_checkBox.stateChanged.connect(self.sma10_checkBox_statechanged_cb)
+        self.sma20_checkBox.stateChanged.connect(self.sma20_checkBox_statechanged_cb)
+        self.sma60_checkBox.stateChanged.connect(self.sma60_checkBox_statechanged_cb)
 
         # Menu
+        self.actionFullscreen.triggered.connect(self.action_fullscreen_triggered_cb)
         ## System
-        self.actionMultiDownloader.triggered.connect(self.action_multidownloader_tiggered_cb)
+        self.actionMultiDownloader.triggered.connect(self.action_multidownloader_triggered_cb)
 
         #initial SKCOMLib
         self.initial_skcom_object()
@@ -91,8 +97,8 @@ class stk_app(QMainWindow, Ui_MainWindow):
         stkplot.stkdata = stkdata
         stkplot.draw()
         tab = self.stkview_tab.addTab(stkplot, fullname)
-        self.stkview_tab.setCurrentIndex(tab)
         self.tab_list[code] = [name, fullname, stkplot, stkdata]
+        self.stkview_tab.setCurrentIndex(tab)
 
     #select a stock to show the plot <this is history stock data>
     def stkdata_tableview_clicked_cb(self, row, column):
@@ -110,6 +116,15 @@ class stk_app(QMainWindow, Ui_MainWindow):
     def stkview_tab_current_changed_cb(self, index):
         tab = self.stkview_tab
         self.tabCurrentIndex = tab.tabText(index).split('-')[0]
+        selected = self.KLine_group.checkedButton().text()
+        if selected == "1 mins":
+            self.mins_1_k_button_cb(True)
+        elif selected == "5 mins":
+            self.mins_5_k_button_cb(True)
+        elif selected == "60 mins":
+            self.mins_60_k_button_cb(True)
+        elif selected == "Day":
+            self.mins_270_k_button_cb(True)
 
     def capital_login_clicked_cb(self, checked):
         username = self.username_lineedit.text()
@@ -133,7 +148,7 @@ class stk_app(QMainWindow, Ui_MainWindow):
         self.statusbar.showMessage("enterMonitor successed!!", 3000)
         return True
     
-    def stocklist_treeWidget_item_clicked_cb(self, item, column):
+    def stocklist_treewidget_item_clicked_cb(self, item, column):
         #This is not a stock number
         if item.childCount() != 0:
             return None
@@ -153,16 +168,26 @@ class stk_app(QMainWindow, Ui_MainWindow):
         self.stkview_tab.setCurrentIndex(tab)
         self.tab_list[code] = [name, fullname, stkplot, stkdata]
         #History
-        self.statusbar.showMessage(f"Request KLine data: {item.text(0)}")
-        rst = self.skq.SKQuoteLib_RequestKLine(code, 0, 1)
-        if rst != 0:
-            self.statusbar.showMessage(f"Request KLine: {item.text(0)} failed !!", 5000)
-            return None 
-
-        self.statusbar.showMessage("Request KLine: {item.text(0)} Successed !!", 3000)
-        stkplot.draw()
+        # self.statusbar.showMessage(f"Request KLine data: {item.text(0)}")
+        # rst = self.skq.SKQuoteLib_RequestKLine(code, 0, 1)
+        # if rst != 0:
+        #     self.statusbar.showMessage(f"Request KLine: {item.text(0)} failed !!", 5000)
+        #     return None 
+        #
+        # self.statusbar.showMessage("Request KLine: {item.text(0)} Successed !!", 3000)
+        # stkplot.draw()
         #Not make sure yet.
-        #page = self.skq.SKQuoteLib_RequestStocks(-1, item.text(0))
+        page, rst = self.skq.SKQuoteLib_RequestStocks(-1, item.text(0))
+        if rst == 0:
+            print("SKQuoteLib_RequestStocks successed !!")
+        else:
+            print("SKQuoteLib_RequestStocks failed !!")
+
+        page, rst = self.skq.SKQuoteLib_RequestTicks(-1, item.text(0))
+        if rst == 0:
+            print("SKQuoteLib_RequestStocks successed !!")
+        else:
+            print("SKQuoteLib_RequestStocks failed !!")
         
     def stocklist_tool_box_currentChanged_cb(self, index):
         if index == 0:
@@ -173,6 +198,7 @@ class stk_app(QMainWindow, Ui_MainWindow):
             return None
         tab = self.tab_list[self.tabCurrentIndex]
         # element: "code": [name, fullname, stkplot, stkdata]
+        print(self.KLine_group.checkedButton().text())
         tab[3].save_csv(f"./stkdata/{tab[1]}.txt")
         self.statusbar.showMessage(f"Save - {tab[1]} - Done", 5000)
         
@@ -210,8 +236,54 @@ class stk_app(QMainWindow, Ui_MainWindow):
             return None
         tab[2].tick_range = arg__1
         tab[2].draw()
+
+    def sma5_checkBox_statechanged_cb(self, arg__1):
+        if len(self.tab_list) == 0:
+            return None
+        tab = self.tab_list[self.tabCurrentIndex]
+        if arg__1 == 0:
+            tab[2].draw_SMA5 = False
+        if arg__1 == 2:
+            tab[2].draw_SMA5 = True
+        tab[2].draw()
+        
+    def sma10_checkBox_statechanged_cb(self, arg__1):
+        if len(self.tab_list) == 0:
+            return None
+        tab = self.tab_list[self.tabCurrentIndex]
+        if arg__1 == 0:
+            tab[2].draw_SMA10 = False
+        if arg__1 == 2:
+            tab[2].draw_SMA10 = True
+        tab[2].draw()
     
-    def action_multidownloader_tiggered_cb(self, checkable):
+    def sma20_checkBox_statechanged_cb(self, arg__1):
+        if len(self.tab_list) == 0:
+            return None
+        tab = self.tab_list[self.tabCurrentIndex]
+        if arg__1 == 0:
+            tab[2].draw_SMA20 = False
+        if arg__1 == 2:
+            tab[2].draw_SMA20 = True
+        tab[2].draw()
+    
+    def sma60_checkBox_statechanged_cb(self, arg__1):
+        if len(self.tab_list) == 0:
+            return None
+        tab = self.tab_list[self.tabCurrentIndex]
+        if arg__1 == 0:
+            tab[2].draw_SMA60 = False
+        if arg__1 == 2:
+            tab[2].draw_SMA60 = True
+        tab[2].draw()
+    
+    def action_fullscreen_triggered_cb(self, checkable):
+        if checkable:
+            self.showFullScreen()
+        else:
+            self.showNormal()
+    
+    def action_multidownloader_triggered_cb(self, checkable):
         self.stkmdl = stk_multidownloader(self)
         self.stkmdl.setWindowTitle("Multi-Downloader")
         self.stkmdl.closed.connect(self.action_multidownloader_closed_cb)
@@ -251,6 +323,7 @@ class stk_app(QMainWindow, Ui_MainWindow):
         self.skqEvents.onnotifystocklist.connect(self.skquote_on_notify_stocklist_cb)
         self.skqEvents.onnotifyklinedata.connect(self.skquote_on_notify_kline_data_cb)
         self.skqEvents.onnotifyquote.connect(self.skquote_on_notify_quote_cb)
+        #self.skqEvents.onnotifyticks
     
         #Every new Group retrieved, this function will be called again
         #use stockgroup_num to point the group name from stockgroup_num
@@ -288,11 +361,8 @@ class stk_app(QMainWindow, Ui_MainWindow):
     def skquote_on_notify_quote_cb(self, sMarketNo, sStockIdx):
         psks = self.module.SKSTOCK()
         psks, ret = self.skq.SKQuoteLib_GetStockByIndex(sMarketNo, sStockIdx, psks)
-        print(f"ret = {ret}")
-        print(psks)
-        #print(psks.nStockIdx)
-        print(psks.bstrStockName)
-        print(psks.nHigh)
+        print(f"[skquote_on_notify_quote_cb] ret = {ret}")
+        print(f"{psks.bstrStockName} - {psks.nHigh}, {psks.nOpen}, {psks.nClose}")
 
     #show message to statusbar 
     def on_statusbar_message_cb(self, message):
